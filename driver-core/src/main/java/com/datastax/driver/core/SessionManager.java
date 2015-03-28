@@ -32,6 +32,7 @@ import com.datastax.driver.core.exceptions.DriverInternalError;
 import com.datastax.driver.core.exceptions.UnsupportedFeatureException;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 import com.datastax.driver.core.policies.ReconnectionPolicy;
+import com.datastax.driver.core.policies.SpeculativeExecutionPolicy;
 
 /**
  * Driver implementation of the Session interface.
@@ -199,6 +200,10 @@ class SessionManager extends AbstractSession {
 
     LoadBalancingPolicy loadBalancingPolicy() {
         return cluster.manager.loadBalancingPolicy();
+    }
+
+    SpeculativeExecutionPolicy speculativeRetryPolicy() {
+        return cluster.manager.speculativeRetryPolicy();
     }
 
     ReconnectionPolicy reconnectionPolicy() {
