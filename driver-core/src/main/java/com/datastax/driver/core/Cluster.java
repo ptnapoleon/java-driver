@@ -2005,17 +2005,20 @@ public class Cluster implements Closeable {
             executor.submit(new Runnable() {
                 @Override
                 public void run() {
+                    boolean reachedSchemaAgreement = false;
                     try {
                         // Before refreshing the schema, wait for schema agreement so
                         // that querying a table just after having created it don't fail.
-                        if (!ControlConnection.waitForSchemaAgreement(connection, Cluster.Manager.this))
+                        reachedSchemaAgreement = ControlConnection.waitForSchemaAgreement(connection, Cluster.Manager.this);
+                        if (!reachedSchemaAgreement)
                             logger.warn("No schema agreement from live replicas after {} s. The schema may not be up to date on some nodes.", configuration.getProtocolOptions().getMaxSchemaAgreementWaitSeconds());
                         ControlConnection.refreshSchema(connection, keyspace, table, Cluster.Manager.this, false);
                     } catch (Exception e) {
                         logger.error("Error during schema refresh ({}). The schema from Cluster.getMetadata() might appear stale. Asynchronously submitting job to fix.", e.getMessage());
                         submitSchemaRefresh(keyspace, table);
                     } finally {
-                        // Always sets the result
+                        // Always sets the result, but remember if we reached schema agreement
+                        rs.getExecutionInfo().setReachedSchemaAgreement(reachedSchemaAgreement);
                         future.setResult(rs);
                     }
                 }
