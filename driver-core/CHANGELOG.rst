@@ -31,6 +31,7 @@ CHANGELOG
 - [improvement] Slow Query Logger (JAVA-646)
 - [improvement] Exclude some errors from measurements in LatencyAwarePolicy
   (JAVA-698)
+- [bug] Release connection before completing the ResultSetFuture (JAVA-666)
 
 Merged from 2.0.9_fixes branch:
 
