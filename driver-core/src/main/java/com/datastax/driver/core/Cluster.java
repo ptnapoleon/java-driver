@@ -2025,6 +2025,26 @@ public class Cluster implements Closeable {
             });
         }
 
+        public void waitForSchemaAgreementAndSignal(final Connection connection, final DefaultResultSetFuture future, final ResultSet rs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    boolean reachedSchemaAgreement = false;
+                    try {
+                        reachedSchemaAgreement = ControlConnection.waitForSchemaAgreement(connection, Cluster.Manager.this);
+                        if (!reachedSchemaAgreement)
+                            logger.warn("No schema agreement from live replicas after {} s. The schema may not be up to date on some nodes.", configuration.getProtocolOptions().getMaxSchemaAgreementWaitSeconds());
+                    } catch (Exception e) {
+                        logger.warn("Error while waiting for schema agreement", e);
+                    } finally {
+                        rs.getExecutionInfo().setReachedSchemaAgreement(reachedSchemaAgreement);
+                        future.setResult(rs);
+                    }
+                }
+            });
+        }
+
+
         // Called when some message has been received but has been initiated from the server (streamId < 0).
         // This is called on an I/O thread, so all blocking operation must be done on an executor.
         @Override
